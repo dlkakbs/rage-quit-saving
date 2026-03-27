@@ -1,66 +1,87 @@
-## Foundry
+# Rage Quit Saving
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+A on-chain savings pool where patience pays — and quitters fund the winners.
 
-Foundry consists of:
+Built on **Arc Testnet** (chain ID: 5042002). USDC is the native gas token on Arc, making this a stablecoin-native savings experience with fast finality and predictable costs.
 
-- **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
-- **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
-- **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
-- **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+---
 
-## Documentation
+## How it works
 
-https://book.getfoundry.sh/
+1. **Lock** — Users deposit USDC into a pool with a fixed lock duration and a visible early-exit penalty.
+2. **Hold** — Every second you stay, you keep your share of the bonus pool. Quitters add to it.
+3. **Quit early** — Pay the penalty (e.g. 20%). That amount goes directly into the bonus pool.
+4. **Claim** — When the lock ends, survivors split the original deposits plus all collected penalties, proportional to their stake.
 
-## Usage
+No oracles. No yield strategies. Just a simple behavioral rule enforced entirely on-chain.
 
-### Build
+---
 
-```shell
-$ forge build
+## Pool types
+
+| Type     | Duration | Early exit penalty | Min deposit |
+|----------|----------|--------------------|-------------|
+| Starter  | 7 days   | 10%                | 10 USDC     |
+| Standard | 30 days  | 20%                | 100 USDC    |
+| Hardcore | 60 days  | 35%                | 500 USDC    |
+
+---
+
+## Smart contract
+
+- **Contract:** `src/RageQuitSaving.sol`
+- **Deployed:** Arc Testnet
+- **Address:** `0x59B7Cbee36075ED66FA04790770eD9d51404E810`
+- **Explorer:** [arcscan.app](https://testnet.arcscan.app/address/0x59B7Cbee36075ED66FA04790770eD9d51404E810)
+
+### Key functions
+
+| Function | Description |
+|---|---|
+| `createPool(duration, penaltyBps)` | Create a new savings pool |
+| `deposit(poolId)` | Join a pool with USDC |
+| `rageQuit(poolId)` | Exit early — penalty is deducted and added to bonus pool |
+| `claim(poolId)` | Claim stake + bonus share after maturity |
+| `getPool(poolId)` | Read pool state |
+| `getStake(poolId, user)` | Read a user's stake in a pool |
+
+---
+
+## Frontend
+
+Built with Next.js, Tailwind CSS, wagmi, and viem.
+
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
-### Test
+---
 
-```shell
-$ forge test
+## Contract development
+
+```bash
+# Build
+forge build
+
+# Test
+forge test
+
+# Deploy to Arc Testnet
+cp .env.example .env
+# fill in PRIVATE_KEY and ARC_TESTNET_RPC_URL
+forge script script/Deploy.s.sol --rpc-url $ARC_TESTNET_RPC_URL --private-key $PRIVATE_KEY --broadcast
 ```
 
-### Format
+---
 
-```shell
-$ forge fmt
+## Environment variables
+
+```
+ARC_TESTNET_RPC_URL=https://rpc.testnet.arc.network
+PRIVATE_KEY=0x...
+RAGEQUIT_ADDRESS=0x59B7Cbee36075ED66FA04790770eD9d51404E810
 ```
 
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+Never commit your `.env` file. It is gitignored by default.
