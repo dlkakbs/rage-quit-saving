@@ -1,6 +1,6 @@
 # Rage Quit Saving
 
-A on-chain savings pool where patience pays — and quitters fund the winners.
+A on-chain savings pool where patience pays and quitters fund the winners.
 
 Built on **Arc Testnet** (chain ID: 5042002). USDC is the native gas token on Arc, making this a stablecoin-native savings experience with fast finality and predictable costs.
 
