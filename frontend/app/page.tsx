@@ -1,12 +1,40 @@
 "use client";
 
 import Link from "next/link";
-import { useReadContract } from "wagmi";
+import { useReadContract, useReadContracts } from "wagmi";
+import { formatEther } from "viem";
 import { ABI, CONTRACT_ADDRESS } from "@/lib/contract";
 
 export default function HomePage() {
   const { data: poolCount } = useReadContract({ address: CONTRACT_ADDRESS, abi: ABI, functionName: "poolCount" });
-  const count = poolCount !== undefined ? Number(poolCount) : null;
+  const count = poolCount !== undefined ? Number(poolCount) : 0;
+
+  const { data: pools } = useReadContracts({
+    contracts: Array.from({ length: count }, (_, i) => ({
+      address: CONTRACT_ADDRESS,
+      abi: ABI,
+      functionName: "getPool",
+      args: [BigInt(i)],
+    })),
+    query: { enabled: count > 0 },
+  });
+
+  let totalLocked = 0;
+  let totalPenalties = 0;
+  let activePools = 0;
+
+  if (pools) {
+    for (const result of pools) {
+      const pool = result.result as { totalStake: bigint; bonusPool: bigint; creator: string; lockEnd: bigint } | undefined;
+      if (!pool || pool.creator === "0x0000000000000000000000000000000000000000") continue;
+      totalLocked += parseFloat(formatEther(pool.totalStake));
+      totalPenalties += parseFloat(formatEther(pool.bonusPool));
+      if (Date.now() / 1000 < Number(pool.lockEnd)) activePools++;
+    }
+  }
+
+  const fmt = (n: number) => n > 0 ? `${n.toLocaleString("en-US", { maximumFractionDigits: 0 })} USDC` : "—";
+
 
   return (
     <div style={{ color: "#fff", minHeight: "100vh" }}>
@@ -109,9 +137,9 @@ export default function HomePage() {
             {/* Stats */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16, marginTop: 40, maxWidth: 480 }}>
               {[
-                ["12,480 USDC", "Locked now"],
-                ["842 USDC", "Quit penalties"],
-                ["1,284", "Still holding"],
+                [fmt(totalLocked), "Locked now"],
+                [fmt(totalPenalties), "Quit penalties"],
+                [activePools > 0 ? String(activePools) : "—", "Active pools"],
               ].map(([value, label]) => (
                 <div key={label} style={{
                   borderRadius: 16, border: "1px solid rgba(255,255,255,0.1)",
