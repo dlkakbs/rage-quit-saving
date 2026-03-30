@@ -64,7 +64,7 @@ function PoolCard({ poolId }: { poolId: number }) {
       </div>
 
       {/* Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 10 }}>
         {[
           { label: "Locked", value: `${parseFloat(formatEther(pool.totalStake)).toFixed(2)} USDC`, color: "#fff" },
           { label: "Bonus pool", value: `${parseFloat(formatEther(pool.bonusPool)).toFixed(2)} USDC`, color: "#6ee7b7" },
