@@ -74,8 +74,9 @@ function PoolCard({ poolId }: { poolId: number }) {
           <div key={label} style={{
             borderRadius: 12, border: "1px solid rgba(255,255,255,0.07)",
             background: "rgba(255,255,255,0.03)", padding: "12px 10px", textAlign: "center",
+            display: "flex", flexDirection: "column", justifyContent: "space-between",
           }}>
-            <div style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.45)", marginBottom: 6 }}>{label}</div>
+            <div style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.45)", minHeight: "2em", display: "flex", alignItems: "center", justifyContent: "center" }}>{label}</div>
             <div style={{ fontSize: "0.9rem", fontWeight: 600, color }}>{value}</div>
           </div>
         ))}
