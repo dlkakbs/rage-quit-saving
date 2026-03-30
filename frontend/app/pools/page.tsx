@@ -23,6 +23,7 @@ function PoolCard({ poolId }: { poolId: number }) {
   const { writeContract, isPending, isSuccess } = useWriteContract();
   const [depositAmt, setDepositAmt] = useState("");
   const [showDeposit, setShowDeposit] = useState(false);
+  const [lastAction, setLastAction] = useState<"deposit" | "rageQuit" | null>(null);
 
   const { data: pool } = useReadContract({
     address: CONTRACT_ADDRESS, abi: ABI, functionName: "getPool",
@@ -161,6 +162,7 @@ function PoolCard({ poolId }: { poolId: number }) {
                   onClick={() => {
                     if (!depositAmt || Number(depositAmt) <= 0) return;
                     if (Number(depositAmt) < minDepositUsdc) return;
+                    setLastAction("deposit");
                     writeContract({ address: CONTRACT_ADDRESS, abi: ABI, functionName: "deposit", args: [BigInt(poolId)], value: parseEther(depositAmt) });
                   }}
                   disabled={isPending || !depositAmt || Number(depositAmt) < minDepositUsdc}
@@ -182,7 +184,7 @@ function PoolCard({ poolId }: { poolId: number }) {
             </div>
           )}
 
-          {isSuccess && (
+          {isSuccess && lastAction === "deposit" && (
             <div style={{
               padding: "12px 16px", borderRadius: 12,
               background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.3)",
@@ -192,9 +194,19 @@ function PoolCard({ poolId }: { poolId: number }) {
             </div>
           )}
 
+          {isSuccess && lastAction === "rageQuit" && (
+            <div style={{
+              padding: "12px 16px", borderRadius: 12,
+              background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.3)",
+              fontSize: "0.875rem", color: "#f87171", textAlign: "center",
+            }}>
+              You rage quit. The survivors will thank you.
+            </div>
+          )}
+
           {userStake !== undefined && userStake > 0n && (
             <button
-              onClick={() => writeContract({ address: CONTRACT_ADDRESS, abi: ABI, functionName: "rageQuit", args: [BigInt(poolId)] })}
+              onClick={() => { setLastAction("rageQuit"); writeContract({ address: CONTRACT_ADDRESS, abi: ABI, functionName: "rageQuit", args: [BigInt(poolId)] }); }}
               disabled={isPending}
               style={{
                 width: "100%", padding: "11px", borderRadius: 9999,
