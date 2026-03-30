@@ -20,7 +20,7 @@ function timeLeft(lockEnd: bigint): string {
 function PoolCard({ poolId }: { poolId: number }) {
   const { address, isConnected } = useAccount();
   const { connect } = useConnect();
-  const { writeContract, isPending } = useWriteContract();
+  const { writeContract, isPending, isSuccess } = useWriteContract();
   const [depositAmt, setDepositAmt] = useState("");
   const [showDeposit, setShowDeposit] = useState(false);
 
@@ -178,6 +178,16 @@ function PoolCard({ poolId }: { poolId: number }) {
                   Minimum deposit is {minDepositUsdc} USDC
                 </span>
               )}
+            </div>
+          )}
+
+          {isSuccess && (
+            <div style={{
+              padding: "12px 16px", borderRadius: 12,
+              background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.3)",
+              fontSize: "0.875rem", color: "#6ee7b7", textAlign: "center",
+            }}>
+              Deposit successful! Your stake is locked.
             </div>
           )}
 

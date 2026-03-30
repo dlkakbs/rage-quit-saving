@@ -154,15 +154,29 @@ function CreateForm() {
 
       {isSuccess && (
         <div style={{
-          marginTop: 16, padding: "14px 18px", borderRadius: 12,
-          background: "rgba(52,211,153,0.08)", border: "1px solid rgba(52,211,153,0.25)",
-          fontSize: "0.875rem", color: "#6ee7b7",
+          marginTop: 16, borderRadius: 16,
+          background: "rgba(52,211,153,0.08)", border: "1px solid rgba(52,211,153,0.3)",
+          padding: "20px 24px", display: "flex", flexDirection: "column", gap: 14,
         }}>
-          Pool created.{" "}
-          <Link href="/pools" style={{ color: "#34d399", textDecoration: "underline" }}>
-            Go to Pools
-          </Link>{" "}
-          to deposit and share.
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: "1.1rem" }}>✓</span>
+            <span style={{ fontWeight: 600, color: "#6ee7b7", fontSize: "0.95rem" }}>
+              Pool created successfully!
+            </span>
+          </div>
+          <p style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.55)", margin: 0, lineHeight: 1.5 }}>
+            Your pool is live. Now head to Pools and deposit to lock in your stake.
+          </p>
+          <Link href="/pools">
+            <button style={{
+              width: "100%", borderRadius: 9999,
+              background: "#34d399", padding: "12px 24px",
+              fontSize: "0.9rem", fontWeight: 600,
+              color: "#0a0a0a", border: "none", cursor: "pointer",
+            }}>
+              Go deposit now →
+            </button>
+          </Link>
         </div>
       )}
 
