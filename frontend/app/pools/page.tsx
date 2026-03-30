@@ -39,6 +39,7 @@ function PoolCard({ poolId }: { poolId: number }) {
 
   const isMatured = Date.now() / 1000 >= Number(pool.lockEnd);
   const penalty = Number(pool.penaltyBps) / 100;
+  const minDepositUsdc = parseFloat(formatEther(pool.minDeposit));
 
   return (
     <div style={{
@@ -50,7 +51,7 @@ function PoolCard({ poolId }: { poolId: number }) {
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <span style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.5)", fontWeight: 500 }}>
-          Pool #{poolId}
+          Pool #{poolId + 1}
         </span>
         <div style={{
           borderRadius: 9999, padding: "4px 12px", fontSize: "0.75rem", fontWeight: 500,
@@ -63,11 +64,12 @@ function PoolCard({ poolId }: { poolId: number }) {
       </div>
 
       {/* Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10 }}>
         {[
           { label: "Locked", value: `${parseFloat(formatEther(pool.totalStake)).toFixed(2)} USDC`, color: "#fff" },
           { label: "Bonus pool", value: `${parseFloat(formatEther(pool.bonusPool)).toFixed(2)} USDC`, color: "#6ee7b7" },
           { label: "Penalty", value: `${penalty}%`, color: "#f87171" },
+          { label: "Min deposit", value: `${minDepositUsdc} USDC`, color: "rgba(255,255,255,0.7)" },
         ].map(({ label, value, color }) => (
           <div key={label} style={{
             borderRadius: 12, border: "1px solid rgba(255,255,255,0.07)",
@@ -107,7 +109,7 @@ function PoolCard({ poolId }: { poolId: number }) {
             color: "#fff", cursor: "pointer",
           }}
         >
-          Connect to interact
+          Connect to join
         </button>
       ) : isMatured ? (
         <button
@@ -139,35 +141,43 @@ function PoolCard({ poolId }: { poolId: number }) {
               Join Pool
             </button>
           ) : (
-            <div style={{ display: "flex", gap: 8 }}>
-              <input
-                type="number"
-                placeholder="USDC amount"
-                value={depositAmt}
-                onChange={(e) => setDepositAmt(e.target.value)}
-                style={{
-                  flex: 1, padding: "11px 14px",
-                  borderRadius: 12, fontSize: "0.875rem",
-                  border: "1px solid rgba(255,255,255,0.15)",
-                  background: "rgba(255,255,255,0.05)",
-                  color: "#fff", outline: "none",
-                }}
-              />
-              <button
-                onClick={() => {
-                  if (!depositAmt || Number(depositAmt) <= 0) return;
-                  writeContract({ address: CONTRACT_ADDRESS, abi: ABI, functionName: "deposit", args: [BigInt(poolId)], value: parseEther(depositAmt) });
-                }}
-                disabled={isPending}
-                style={{
-                  borderRadius: 12, background: "#34d399",
-                  padding: "11px 18px", fontSize: "0.875rem", fontWeight: 600,
-                  color: "#0a0a0a", border: "none", cursor: "pointer",
-                  opacity: isPending ? 0.6 : 1,
-                }}
-              >
-                {isPending ? "..." : "Deposit"}
-              </button>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <div style={{ display: "flex", gap: 8 }}>
+                <input
+                  type="number"
+                  placeholder={`Min ${minDepositUsdc} USDC`}
+                  value={depositAmt}
+                  onChange={(e) => setDepositAmt(e.target.value)}
+                  style={{
+                    flex: 1, padding: "11px 14px",
+                    borderRadius: 12, fontSize: "0.875rem",
+                    border: `1px solid ${depositAmt && Number(depositAmt) < minDepositUsdc ? "rgba(248,113,113,0.5)" : "rgba(255,255,255,0.15)"}`,
+                    background: "rgba(255,255,255,0.05)",
+                    color: "#fff", outline: "none",
+                  }}
+                />
+                <button
+                  onClick={() => {
+                    if (!depositAmt || Number(depositAmt) <= 0) return;
+                    if (Number(depositAmt) < minDepositUsdc) return;
+                    writeContract({ address: CONTRACT_ADDRESS, abi: ABI, functionName: "deposit", args: [BigInt(poolId)], value: parseEther(depositAmt) });
+                  }}
+                  disabled={isPending || !depositAmt || Number(depositAmt) < minDepositUsdc}
+                  style={{
+                    borderRadius: 12, background: "#34d399",
+                    padding: "11px 18px", fontSize: "0.875rem", fontWeight: 600,
+                    color: "#0a0a0a", border: "none", cursor: "pointer",
+                    opacity: (isPending || !depositAmt || Number(depositAmt) < minDepositUsdc) ? 0.4 : 1,
+                  }}
+                >
+                  {isPending ? "..." : "Deposit"}
+                </button>
+              </div>
+              {depositAmt && Number(depositAmt) < minDepositUsdc && (
+                <span style={{ fontSize: "0.75rem", color: "#f87171", paddingLeft: 4 }}>
+                  Minimum deposit is {minDepositUsdc} USDC
+                </span>
+              )}
             </div>
           )}
 

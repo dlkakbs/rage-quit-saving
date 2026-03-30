@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useAccount, useWriteContract, useConnect } from "wagmi";
 import { injected } from "wagmi/connectors";
+import { parseEther } from "viem";
 import { ABI, CONTRACT_ADDRESS } from "@/lib/contract";
 import { arcTestnet } from "@/lib/wagmi";
 import { Navbar } from "@/components/Navbar";
@@ -10,9 +11,9 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 const POOL_TYPES = [
-  { id: "starter",  label: "Starter",  durationLabel: "7 days",  duration: 7  * 86400, penalty: 10, min: "10 USDC",  desc: "Low pressure, low penalty" },
-  { id: "standard", label: "Standard", durationLabel: "30 days", duration: 30 * 86400, penalty: 20, min: "100 USDC", desc: "Best for habit-building" },
-  { id: "hardcore", label: "Hardcore", durationLabel: "60 days", duration: 60 * 86400, penalty: 35, min: "500 USDC", desc: "For serious diamond hands" },
+  { id: "starter",  label: "Starter",  durationLabel: "7 days",  duration: 7  * 86400, penalty: 10, minAmount: 10,  desc: "Low pressure, low penalty" },
+  { id: "standard", label: "Standard", durationLabel: "30 days", duration: 30 * 86400, penalty: 20, minAmount: 100, desc: "Best for habit-building" },
+  { id: "hardcore", label: "Hardcore", durationLabel: "60 days", duration: 60 * 86400, penalty: 35, minAmount: 500, desc: "For serious diamond hands" },
 ];
 
 function CreateForm() {
@@ -99,7 +100,7 @@ function CreateForm() {
           { label: "Pool type",           value: selected.label,             color: "#fff" },
           { label: "Lock period",         value: selected.durationLabel,     color: "#fff" },
           { label: "Early exit penalty",  value: `${selected.penalty}%`,     color: "#f87171" },
-          { label: "Minimum deposit",     value: selected.min,               color: "#6ee7b7" },
+          { label: "Minimum deposit",     value: `${selected.minAmount} USDC`, color: "#6ee7b7" },
         ].map(({ label, value, color }) => (
           <div key={label} style={{
             display: "flex", justifyContent: "space-between", alignItems: "center",
@@ -135,7 +136,7 @@ function CreateForm() {
             address: CONTRACT_ADDRESS,
             abi: ABI,
             functionName: "createPool",
-            args: [BigInt(selected.duration), BigInt(selected.penalty * 100)],
+            args: [BigInt(selected.duration), BigInt(selected.penalty * 100), parseEther(String(selected.minAmount))],
           })}
           disabled={isPending}
           style={{

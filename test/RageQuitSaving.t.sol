@@ -25,7 +25,7 @@ contract RageQuitSavingTest is Test {
     // ─────────────────────────────────────── Helpers ──
 
     function _createAndDeposit() internal returns (uint256 poolId) {
-        poolId = pool.createPool(LOCK_30_DAYS, PENALTY_20);
+        poolId = pool.createPool(LOCK_30_DAYS, PENALTY_20, 0);
 
         vm.prank(alice); pool.deposit{value: 100 ether}(poolId);
         vm.prank(bob);   pool.deposit{value: 200 ether}(poolId);
@@ -35,12 +35,29 @@ contract RageQuitSavingTest is Test {
     // ─────────────────────────────────────── Tests ──
 
     function test_CreatePool() public {
-        uint256 poolId = pool.createPool(LOCK_30_DAYS, PENALTY_20);
+        uint256 poolId = pool.createPool(LOCK_30_DAYS, PENALTY_20, 50 ether);
         RageQuitSaving.Pool memory p = pool.getPool(poolId);
 
-        assertEq(p.penaltyBps, PENALTY_20);
-        assertEq(p.totalStake, 0);
-        assertEq(p.bonusPool,  0);
+        assertEq(p.penaltyBps,  PENALTY_20);
+        assertEq(p.minDeposit,  50 ether);
+        assertEq(p.totalStake,  0);
+        assertEq(p.bonusPool,   0);
+    }
+
+    function test_BelowMinDeposit_Reverts() public {
+        uint256 poolId = pool.createPool(LOCK_30_DAYS, PENALTY_20, 50 ether);
+
+        vm.prank(alice);
+        vm.expectRevert(RageQuitSaving.BelowMinDeposit.selector);
+        pool.deposit{value: 10 ether}(poolId);
+    }
+
+    function test_ExactMinDeposit_Succeeds() public {
+        uint256 poolId = pool.createPool(LOCK_30_DAYS, PENALTY_20, 50 ether);
+
+        vm.prank(alice);
+        pool.deposit{value: 50 ether}(poolId);
+        assertEq(pool.getStake(poolId, alice), 50 ether);
     }
 
     function test_Deposit() public {

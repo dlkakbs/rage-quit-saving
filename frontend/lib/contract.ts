@@ -1,9 +1,13 @@
-export const CONTRACT_ADDRESS = "0x59B7Cbee36075ED66FA04790770eD9d51404E810" as `0x${string}`;
+export const CONTRACT_ADDRESS = "0xb491386995B81cD043E4dcCAA658CA5E5D291fc9" as `0x${string}`;
 
 export const ABI = [
   {
     type: "function", name: "createPool",
-    inputs: [{ name: "lockDuration", type: "uint256" }, { name: "penaltyBps", type: "uint256" }],
+    inputs: [
+      { name: "lockDuration", type: "uint256" },
+      { name: "penaltyBps", type: "uint256" },
+      { name: "minDeposit_", type: "uint256" },
+    ],
     outputs: [{ name: "poolId", type: "uint256" }],
     stateMutability: "nonpayable",
   },
@@ -34,6 +38,7 @@ export const ABI = [
         { name: "creator", type: "address" },
         { name: "lockEnd", type: "uint256" },
         { name: "penaltyBps", type: "uint256" },
+        { name: "minDeposit", type: "uint256" },
         { name: "totalStake", type: "uint256" },
         { name: "bonusPool", type: "uint256" },
       ],

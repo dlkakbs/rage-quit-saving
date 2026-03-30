@@ -19,6 +19,7 @@ contract RageQuitSaving {
         address creator;
         uint256 lockEnd;        // unix timestamp
         uint256 penaltyBps;     // basis points, örn. 2000 = %20
+        uint256 minDeposit;     // minimum deposit miktarı (wei)
         uint256 totalStake;     // aktif katılımcıların toplam stake'i
         uint256 bonusPool;      // biriken cezalar
     }
@@ -46,6 +47,7 @@ contract RageQuitSaving {
     error NoStake();
     error AlreadyClaimed();
     error ZeroDeposit();
+    error BelowMinDeposit();
     error InvalidPenalty();
     error InvalidLockDuration();
 
@@ -54,7 +56,8 @@ contract RageQuitSaving {
     /// @notice Yeni bir savings pool oluştur
     /// @param lockDuration Saniye cinsinden kilit süresi (örn. 30 gün = 2592000)
     /// @param penaltyBps   Erken çıkış cezası basis point (örn. 2000 = %20)
-    function createPool(uint256 lockDuration, uint256 penaltyBps) external returns (uint256 poolId) {
+    /// @param minDeposit_  Minimum deposit miktarı (wei)
+    function createPool(uint256 lockDuration, uint256 penaltyBps, uint256 minDeposit_) external returns (uint256 poolId) {
         if (lockDuration == 0) revert InvalidLockDuration();
         if (penaltyBps == 0 || penaltyBps >= 10000) revert InvalidPenalty();
 
@@ -64,6 +67,7 @@ contract RageQuitSaving {
             creator:    msg.sender,
             lockEnd:    block.timestamp + lockDuration,
             penaltyBps: penaltyBps,
+            minDeposit: minDeposit_,
             totalStake: 0,
             bonusPool:  0
         });
@@ -75,6 +79,7 @@ contract RageQuitSaving {
     function deposit(uint256 poolId) external payable {
         Pool storage pool = _getActivePool(poolId);
         if (msg.value == 0) revert ZeroDeposit();
+        if (pool.minDeposit > 0 && msg.value < pool.minDeposit) revert BelowMinDeposit();
 
         stakes[poolId][msg.sender] += msg.value;
         pool.totalStake            += msg.value;
